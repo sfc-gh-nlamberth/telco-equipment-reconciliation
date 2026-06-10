@@ -64,34 +64,26 @@ st.markdown("""
         color: #FFFFFF;
         font-weight: 400;
     }
-    /* Nav bar: black background strip with white text buttons */
-    [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"] > [data-testid="element-container"] > [data-testid="stMarkdownContainer"] > .nav-bar-marker) {
-        background-color: #000000;
-        margin: -1.5rem -1rem 1.5rem -1rem;
-        padding: 8px 24px;
+    .app-header .nav-links {
+        display: flex;
+        gap: 24px;
+        margin-left: 48px;
     }
-    [data-testid="stVerticalBlockBorderWrapper"]:has(.nav-bar-marker) button {
-        background-color: transparent !important;
-        color: #AAAAAA !important;
-        border: none !important;
-        border-bottom: 3px solid transparent !important;
-        border-radius: 0 !important;
-        font-size: 14px !important;
-        font-weight: 500 !important;
-        padding: 10px 20px !important;
-        margin: 0 !important;
-        white-space: nowrap !important;
+    .app-header .nav-links a {
+        color: #AAAAAA;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 4px 0;
+        border-bottom: 2px solid transparent;
+        transition: color 0.2s, border-color 0.2s;
     }
-    [data-testid="stVerticalBlockBorderWrapper"]:has(.nav-bar-marker) button:hover {
-        color: #FFFFFF !important;
-        background-color: #222222 !important;
-        border-bottom: 3px solid #555555 !important;
+    .app-header .nav-links a:hover {
+        color: #FFFFFF;
     }
-    [data-testid="stVerticalBlockBorderWrapper"]:has(.nav-bar-marker) button[kind="primary"],
-    [data-testid="stVerticalBlockBorderWrapper"]:has(.nav-bar-marker) button[data-testid="stBaseButton-primary"] {
-        color: #FFFFFF !important;
-        border-bottom: 3px solid #1976D2 !important;
-        background-color: transparent !important;
+    .app-header .nav-links a.active {
+        color: #FFFFFF;
+        border-bottom: 2px solid #1976D2;
     }
     .badge-high {
         background-color: #FDECEA;
@@ -276,38 +268,29 @@ def load_site_harmonized(site_ids):
 # Page Routing
 # =============================================================================
 
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "summary"
+query_params = st.query_params
+current_page = query_params.get("page", "summary")
 
 # =============================================================================
 # Header
 # =============================================================================
 
-current_page = st.session_state.current_page
+summary_active = "active" if current_page == "summary" else ""
+details_active = "active" if current_page == "details" else ""
+assistant_active = "active" if current_page == "assistant" else ""
 
-st.markdown("""
+st.markdown(f"""
 <div class="app-header">
     <div class="brand">
         <span class="app-name">Equipment Reconciliation</span>
     </div>
+    <div class="nav-links">
+        <a href="?page=summary" target="_self" class="{summary_active}">Executive Summary</a>
+        <a href="?page=details" target="_self" class="{details_active}">Site Details</a>
+        <a href="?page=assistant" target="_self" class="{assistant_active}">AI Assistant</a>
+    </div>
 </div>
 """, unsafe_allow_html=True)
-
-nav_container = st.container()
-nav_container.markdown('<div class="nav-bar-marker"></div>', unsafe_allow_html=True)
-nav_cols = nav_container.columns([1, 1, 1, 4])
-with nav_cols[0]:
-    if st.button("Executive Summary", use_container_width=True, type="primary" if current_page == "summary" else "secondary", key="nav_summary"):
-        st.session_state.current_page = "summary"
-        st.rerun()
-with nav_cols[1]:
-    if st.button("Site Details", use_container_width=True, type="primary" if current_page == "details" else "secondary", key="nav_details"):
-        st.session_state.current_page = "details"
-        st.rerun()
-with nav_cols[2]:
-    if st.button("AI Assistant", use_container_width=True, type="primary" if current_page == "assistant" else "secondary", key="nav_assistant"):
-        st.session_state.current_page = "assistant"
-        st.rerun()
 
 # =============================================================================
 # Load Data
@@ -419,6 +402,7 @@ if current_page == "summary":
             sev_color = severity_colors.get(r["SEVERITY"], "#333")
             site_id = int(r["SITE_ID"])
             rows_html += f"""<tr>
+                <td style="padding:6px 12px;border-bottom:1px solid #EEE;"><a href="?page=details&site={site_id}&sector={r['SECTOR']}" target="_self" style="color:#1976D2;font-weight:600;text-decoration:none;">View</a></td>
                 <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{site_id}</td>
                 <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{r['SITE_NAME']}</td>
                 <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{r['SECTOR']}</td>
@@ -430,6 +414,7 @@ if current_page == "summary":
         return f"""<div style="max-height:400px;overflow-y:auto;border:1px solid #E0E0E0;border-radius:4px;">
         <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr style="background:#F5F5F5;position:sticky;top:0;">
+                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;"></th>
                 <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Site ID</th>
                 <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Site Name</th>
                 <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Sector</th>
@@ -442,20 +427,6 @@ if current_page == "summary":
         </table></div>"""
 
     st.markdown(build_html_table(filtered_df), unsafe_allow_html=True)
-
-    # Site navigation buttons — click to jump to Site Details
-    unique_sites = filtered_df[["SITE_ID", "SITE_NAME"]].drop_duplicates().sort_values("SITE_NAME")
-    if not unique_sites.empty:
-        st.markdown("**Jump to site details:**")
-        btn_cols = st.columns(min(len(unique_sites), 5))
-        for idx, (_, site_row) in enumerate(unique_sites.iterrows()):
-            col = btn_cols[idx % min(len(unique_sites), 5)]
-            site_id = int(site_row["SITE_ID"])
-            with col:
-                if st.button(f"{site_row['SITE_NAME']}", key=f"site_link_{site_id}"):
-                    st.session_state.current_page = "details"
-                    st.session_state.preselected_sites = [site_id]
-                    st.rerun()
 
 
 # =============================================================================
@@ -470,7 +441,15 @@ elif current_page == "details":
     site_options = site_df["SITE_ID"].tolist()
     site_labels = {row["SITE_ID"]: f"{int(row['SITE_ID'])} — {row['SITE_NAME']}" for _, row in site_df.iterrows()}
 
-    default_selection = st.session_state.pop("preselected_sites", [])
+    param_site = query_params.get("site", None)
+    default_selection = []
+    if param_site:
+        try:
+            param_site_id = int(param_site)
+            if param_site_id in site_options:
+                default_selection = [param_site_id]
+        except (ValueError, IndexError):
+            pass
 
     selected_sites = st.multiselect(
         "Select Sites", options=site_options, default=default_selection,
@@ -525,6 +504,11 @@ elif current_page == "details":
         # Discrepancy details
         if discrepancy_count > 0:
             st.markdown('<div class="section-header" style="font-size:16px;margin-top:32px;">Discrepancy Details</div>', unsafe_allow_html=True)
+
+            param_sector = query_params.get("sector", None)
+            if param_sector:
+                match_mask = site_records["SECTOR"] == param_sector
+                site_records = pd.concat([site_records[match_mask], site_records[~match_mask]])
 
             for _, row in site_records.iterrows():
                 with st.expander(f"{row['SITE_NAME']} / {row['SECTOR']} — {row['DISCREPANCY_TYPE']} ({row['SEVERITY']})", expanded=True):
