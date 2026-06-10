@@ -18,10 +18,9 @@ import streamlit as st
 # =============================================================================
 
 try:
-    from snowflake.snowpark.context import get_active_session
-    session = get_active_session()
+    session = st.connection("snowflake").session()
     IS_SIS = True
-except (ImportError, Exception):
+except Exception:
     IS_SIS = False
     import os
     from pathlib import Path
@@ -267,12 +266,7 @@ def load_site_harmonized(site_ids):
 # Page Routing
 # =============================================================================
 
-if hasattr(st, "query_params"):
-    query_params = st.query_params
-else:
-    _raw = st.experimental_get_query_params()
-    query_params = {k: v[0] for k, v in _raw.items() if v}
-
+query_params = st.query_params
 current_page = query_params.get("page", "summary")
 
 # =============================================================================
@@ -364,15 +358,15 @@ if current_page == "summary":
         alt.Chart(region_data)
         .mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4)
         .encode(
-            x=alt.X("DISCREPANCY_TYPE:N", title=None, axis=alt.Axis(labelAngle=-45)),
+            x=alt.X("REGION:N", title=None),
             y=alt.Y("COUNT:Q", title="Count"),
             color=alt.Color("DISCREPANCY_TYPE:N", scale=alt.Scale(domain=["SERIAL_MISMATCH", "PRODUCT_MISMATCH", "NO_ENM_MATCH"], range=["#D32F2F", "#F57C00", "#757575"]), title="Type"),
-            column=alt.Column("REGION:N", title=None),
+            xOffset="DISCREPANCY_TYPE:N",
             tooltip=[alt.Tooltip("REGION:N", title="Region"), alt.Tooltip("DISCREPANCY_TYPE:N", title="Type"), alt.Tooltip("COUNT:Q", title="Count"), alt.Tooltip("CAPITAL_AT_RISK:Q", title="Capital at Risk", format="$,.0f")],
         )
-        .properties(height=250, width=150)
+        .properties(height=250)
     )
-    st.altair_chart(region_chart, use_container_width=False)
+    st.altair_chart(region_chart, use_container_width=True)
 
     # Detail table
     st.markdown('<div class="section-header">Site-Level Discrepancies</div>', unsafe_allow_html=True)

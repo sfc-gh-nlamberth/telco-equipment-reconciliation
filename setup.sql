@@ -50,6 +50,16 @@ CREATE API INTEGRATION IF NOT EXISTS github_api_integration
 GRANT USAGE ON INTEGRATION github_api_integration TO ROLE EQUIPMENT_RECON_ROLE;
 
 -- =============================================================================
+-- External Access Integration (for PyPI package installation)
+-- =============================================================================
+
+CREATE EXTERNAL ACCESS INTEGRATION IF NOT EXISTS pypi_access_integration
+  ALLOWED_NETWORK_RULES = (snowflake.external_access.pypi_rule)
+  ENABLED = TRUE;
+
+GRANT USAGE ON INTEGRATION pypi_access_integration TO ROLE EQUIPMENT_RECON_ROLE;
+
+-- =============================================================================
 -- Database & Schemas
 -- =============================================================================
 
@@ -678,11 +688,13 @@ BEGIN
     -- Fetch latest from GitHub
     ALTER GIT REPOSITORY RECONCILED.DEMO_REPO FETCH;
 
-    -- Create the Streamlit app directly from the git repo
+    -- Create the Streamlit app directly from the git repo (container runtime)
     CREATE OR REPLACE STREAMLIT RECONCILED.EQUIPMENT_RECONCILIATION_APP
         FROM @RECONCILED.DEMO_REPO/branches/main/streamlit_app/
         MAIN_FILE = 'streamlit_app.py'
         QUERY_WAREHOUSE = EQUIPMENT_RECON_WH
+        RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
+        EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration)
         TITLE = 'Equipment Reconciliation'
         COMMENT = 'Equipment reconciliation dashboard - ENM vs BOM discrepancy analysis';
 
