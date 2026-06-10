@@ -46,33 +46,37 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* Header/nav bar — targets the container with data-testid that holds our nav */
-    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child {
-        background-color: #000000;
-        margin: -1rem -1rem 1.5rem -1rem;
-        padding: 12px 24px 12px 24px;
+    /* Pull main block up to remove default top padding */
+    [data-testid="stMainBlockContainer"] {
+        padding-top: 0 !important;
     }
-    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child [data-testid="stHorizontalBlock"] {
-        gap: 24px !important;
+    /* Header background covers the nav links row too */
+    .header-bg {
+        background: #000;
+        margin: -1rem -1rem 0 -1rem;
+        padding: 14px 24px 48px 24px;
+        display: flex;
         align-items: center;
     }
-    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child [data-testid="stColumn"]:first-child {
-        flex: 0 0 auto !important;
-        width: auto !important;
-        min-width: 200px;
-    }
-    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child [data-testid="stColumn"]:first-child p {
-        color: #FFFFFF !important;
+    .header-bg .brand {
+        color: #FFF;
         font-size: 18px;
         font-weight: 400;
         letter-spacing: -0.3px;
-        margin: 0;
     }
-    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child [data-testid="stColumn"]:not(:first-child) {
+    /* Pull the page links row (stHorizontalBlock containing stPageLink) up into header */
+    [data-testid="stHorizontalBlock"]:has([data-testid="stPageLink"]) {
+        margin-top: -38px !important;
+        margin-bottom: 1.5rem !important;
+        padding-left: 24px;
+        gap: 24px !important;
+    }
+    [data-testid="stHorizontalBlock"]:has([data-testid="stPageLink"]) [data-testid="stColumn"] {
         flex: 0 0 auto !important;
         width: auto !important;
     }
-    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child div[data-testid="stPageLink"] a {
+    /* Style page link elements for nav */
+    div[data-testid="stPageLink"] a {
         color: #AAAAAA !important;
         text-decoration: none !important;
         font-size: 14px !important;
@@ -81,10 +85,10 @@ st.markdown("""
         border-bottom: 2px solid transparent !important;
         background: none !important;
     }
-    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child div[data-testid="stPageLink"] a:hover {
+    div[data-testid="stPageLink"] a:hover {
         color: #FFFFFF !important;
     }
-    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child div[data-testid="stPageLink"] a[aria-current="page"] {
+    div[data-testid="stPageLink"] a[aria-current="page"] {
         color: #FFFFFF !important;
         border-bottom: 2px solid #E65100 !important;
     }
@@ -633,16 +637,20 @@ pg = st.navigation(
     position="hidden",
 )
 
-# Render header bar with brand + clickable page links
-with st.container():
-    nav_cols = st.columns([2, 1.5, 1, 1])
-    with nav_cols[0]:
-        st.markdown("APEX Reconciliation")
-    with nav_cols[1]:
-        st.page_link(summary_page_ref, label="Executive Summary")
-    with nav_cols[2]:
-        st.page_link(details_page_ref, label="Site Details")
-    with nav_cols[3]:
-        st.page_link(assistant_page_ref, label="AI Assistant")
+# Render header: HTML background bar (with extra padding to cover nav link row)
+st.markdown("""
+<div class="header-bg">
+    <span class="brand">APEX Reconciliation</span>
+</div>
+""", unsafe_allow_html=True)
+
+# Page link navigation (pulled up into the black area via CSS :has selector)
+nav_cols = st.columns([1.5, 1, 1])
+with nav_cols[0]:
+    st.page_link(summary_page_ref, label="Executive Summary")
+with nav_cols[1]:
+    st.page_link(details_page_ref, label="Site Details")
+with nav_cols[2]:
+    st.page_link(assistant_page_ref, label="AI Assistant")
 
 pg.run()
