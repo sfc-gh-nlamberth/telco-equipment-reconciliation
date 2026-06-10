@@ -60,6 +60,12 @@ CREATE EXTERNAL ACCESS INTEGRATION IF NOT EXISTS pypi_access_integration
 GRANT USAGE ON INTEGRATION pypi_access_integration TO ROLE EQUIPMENT_RECON_ROLE;
 
 -- =============================================================================
+-- Compute Pool Access (for container runtime Streamlit)
+-- =============================================================================
+
+GRANT USAGE ON COMPUTE POOL SYSTEM_COMPUTE_POOL_CPU TO ROLE EQUIPMENT_RECON_ROLE;
+
+-- =============================================================================
 -- Database & Schemas
 -- =============================================================================
 
@@ -694,6 +700,7 @@ BEGIN
         MAIN_FILE = 'streamlit_app.py'
         QUERY_WAREHOUSE = EQUIPMENT_RECON_WH
         RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
+        COMPUTE_POOL = SYSTEM_COMPUTE_POOL_CPU
         EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration)
         TITLE = 'Equipment Reconciliation'
         COMMENT = 'Equipment reconciliation dashboard - ENM vs BOM discrepancy analysis';
