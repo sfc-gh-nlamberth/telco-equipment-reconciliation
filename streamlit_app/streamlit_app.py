@@ -49,7 +49,7 @@ st.markdown("""
     .app-header {
         background-color: #000000;
         padding: 12px 24px;
-        margin: -1rem -1rem 1.5rem -1rem;
+        margin: -1rem -1rem 0 -1rem;
         display: flex;
         align-items: center;
         gap: 16px;
@@ -64,26 +64,53 @@ st.markdown("""
         color: #FFFFFF;
         font-weight: 400;
     }
-    .app-header .nav-links {
+    /* Style st.page_link elements to look like nav links */
+    div[data-testid="stPageLink"] {
+        display: inline-block !important;
+    }
+    div[data-testid="stPageLink"] a {
+        color: #AAAAAA !important;
+        text-decoration: none !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        padding: 4px 0 !important;
+        border-bottom: 2px solid transparent !important;
+        transition: color 0.2s, border-color 0.2s !important;
+        background: none !important;
+    }
+    div[data-testid="stPageLink"] a:hover {
+        color: #FFFFFF !important;
+    }
+    div[data-testid="stPageLink"] a[aria-current="page"] {
+        color: #FFFFFF !important;
+        border-bottom: 2px solid #1976D2 !important;
+    }
+    /* Nav container styling */
+    .nav-container {
+        background-color: #000000;
+        margin: 0 -1rem 1.5rem -1rem;
+        padding: 0 24px 12px 88px;
         display: flex;
         gap: 24px;
-        margin-left: 48px;
     }
-    .app-header .nav-links a {
-        color: #AAAAAA;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
-        padding: 4px 0;
-        border-bottom: 2px solid transparent;
-        transition: color 0.2s, border-color 0.2s;
+    .nav-container .stPageLink {
+        display: inline-block;
     }
-    .app-header .nav-links a:hover {
-        color: #FFFFFF;
+    /* View button styled as link */
+    .view-link button {
+        color: #1976D2 !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        padding: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+        line-height: 1.4 !important;
+        border: none !important;
+        background: none !important;
     }
-    .app-header .nav-links a.active {
-        color: #FFFFFF;
-        border-bottom: 2px solid #1976D2;
+    .view-link button:hover {
+        text-decoration: underline !important;
+        color: #1565C0 !important;
     }
     .badge-high {
         background-color: #FDECEA;
@@ -133,6 +160,14 @@ st.markdown("""
     .stChatMessage [data-testid="stChatMessageAvatarAssistant"],
     .stChatMessage .stAvatar {
         display: none !important;
+    }
+    /* Hide default sidebar nav */
+    [data-testid="stSidebar"] {
+        display: none !important;
+    }
+    /* Table row columns alignment */
+    .table-row [data-testid="stVerticalBlock"] {
+        gap: 0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -265,45 +300,35 @@ def load_site_harmonized(site_ids):
 
 
 # =============================================================================
-# Page Routing
+# Session State Init
 # =============================================================================
 
-query_params = st.query_params
-current_page = query_params.get("page", "summary")
+if "nav_site" not in st.session_state:
+    st.session_state.nav_site = None
+if "nav_sector" not in st.session_state:
+    st.session_state.nav_sector = None
+
 
 # =============================================================================
 # Header
 # =============================================================================
 
-summary_active = "active" if current_page == "summary" else ""
-details_active = "active" if current_page == "details" else ""
-assistant_active = "active" if current_page == "assistant" else ""
-
-st.markdown(f"""
+st.markdown("""
 <div class="app-header">
     <div class="brand">
         <span class="app-name">Equipment Reconciliation</span>
     </div>
-    <div class="nav-links">
-        <a href="?page=summary" target="_self" class="{summary_active}">Executive Summary</a>
-        <a href="?page=details" target="_self" class="{details_active}">Site Details</a>
-        <a href="?page=assistant" target="_self" class="{assistant_active}">AI Assistant</a>
-    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# =============================================================================
-# Load Data
-# =============================================================================
-
-insights_df = load_insights()
 
 # =============================================================================
-# PAGE: Executive Summary
+# Page Definitions
 # =============================================================================
 
-if current_page == "summary":
 
+def summary_page():
+    insights_df = load_insights()
     stats = load_summary_stats()
     st.markdown('<div class="section-header">Executive Summary</div>', unsafe_allow_html=True)
 
@@ -395,53 +420,49 @@ if current_page == "summary":
     st.markdown(f"Showing **{len(filtered_df):,}** of {len(insights_df):,} records ({len(filtered_df['SITE_ID'].unique()):,} sites)")
     filtered_df = filtered_df.reset_index(drop=True)
 
-    def build_html_table(df):
-        severity_colors = {"HIGH": "#D32F2F", "MEDIUM": "#E65100"}
-        rows_html = ""
-        for _, r in df.iterrows():
-            sev_color = severity_colors.get(r["SEVERITY"], "#333")
-            site_id = int(r["SITE_ID"])
-            rows_html += f"""<tr>
-                <td style="padding:6px 12px;border-bottom:1px solid #EEE;"><a href="?page=details&site={site_id}&sector={r['SECTOR']}" target="_self" style="color:#1976D2;font-weight:600;text-decoration:none;">View</a></td>
-                <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{site_id}</td>
-                <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{r['SITE_NAME']}</td>
-                <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{r['SECTOR']}</td>
-                <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{r['BOM_REGION'] or '—'}</td>
-                <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{r['DISCREPANCY_TYPE']}</td>
-                <td style="padding:6px 12px;border-bottom:1px solid #EEE;color:{sev_color};font-weight:600;">{r['SEVERITY']}</td>
-                <td style="padding:6px 12px;border-bottom:1px solid #EEE;">${int(r['ESTIMATED_CAPITAL_AT_RISK']):,}</td>
-            </tr>"""
-        return f"""<div style="max-height:400px;overflow-y:auto;border:1px solid #E0E0E0;border-radius:4px;">
-        <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead><tr style="background:#F5F5F5;position:sticky;top:0;">
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;"></th>
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Site ID</th>
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Site Name</th>
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Sector</th>
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Region</th>
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Discrepancy</th>
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Severity</th>
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Capital at Risk</th>
-            </tr></thead>
-            <tbody>{rows_html}</tbody>
-        </table></div>"""
+    # Table header
+    header_cols = st.columns([1, 1.2, 2, 1, 1.5, 2.5, 1.2, 2])
+    header_cols[0].markdown("**&nbsp;**", unsafe_allow_html=True)
+    header_cols[1].markdown("**Site ID**")
+    header_cols[2].markdown("**Site Name**")
+    header_cols[3].markdown("**Sector**")
+    header_cols[4].markdown("**Region**")
+    header_cols[5].markdown("**Discrepancy**")
+    header_cols[6].markdown("**Severity**")
+    header_cols[7].markdown("**Capital at Risk**")
 
-    st.markdown(build_html_table(filtered_df), unsafe_allow_html=True)
+    # Table rows with View button
+    for idx, r in filtered_df.iterrows():
+        row_cols = st.columns([1, 1.2, 2, 1, 1.5, 2.5, 1.2, 2])
+        site_id = int(r["SITE_ID"])
+        sector = r["SECTOR"]
+        with row_cols[0]:
+            st.markdown('<div class="view-link">', unsafe_allow_html=True)
+            if st.button("View", key=f"view_{idx}_{site_id}_{sector}", type="tertiary"):
+                st.session_state.nav_site = site_id
+                st.session_state.nav_sector = sector
+                st.switch_page(details_page_ref)
+            st.markdown('</div>', unsafe_allow_html=True)
+        row_cols[1].markdown(f"{site_id}")
+        row_cols[2].markdown(f"{r['SITE_NAME']}")
+        row_cols[3].markdown(f"{r['SECTOR']}")
+        row_cols[4].markdown(f"{r['BOM_REGION'] or '—'}")
+        row_cols[5].markdown(f"{r['DISCREPANCY_TYPE']}")
+        sev = r["SEVERITY"]
+        sev_color = "#D32F2F" if sev == "HIGH" else "#E65100"
+        row_cols[6].markdown(f"<span style='color:{sev_color};font-weight:600;'>{sev}</span>", unsafe_allow_html=True)
+        row_cols[7].markdown(f"${int(r['ESTIMATED_CAPITAL_AT_RISK']):,}")
 
 
-# =============================================================================
-# PAGE: Site Details
-# =============================================================================
-
-elif current_page == "details":
-
+def details_page():
+    insights_df = load_insights()
     st.markdown('<div class="section-header">Site Details</div>', unsafe_allow_html=True)
 
     site_df = insights_df[["SITE_ID", "SITE_NAME"]].drop_duplicates().sort_values("SITE_NAME")
     site_options = site_df["SITE_ID"].tolist()
     site_labels = {row["SITE_ID"]: f"{int(row['SITE_ID'])} — {row['SITE_NAME']}" for _, row in site_df.iterrows()}
 
-    param_site = query_params.get("site", None)
+    param_site = st.session_state.get("nav_site", None)
     default_selection = []
     if param_site:
         try:
@@ -505,7 +526,7 @@ elif current_page == "details":
         if discrepancy_count > 0:
             st.markdown('<div class="section-header" style="font-size:16px;margin-top:32px;">Discrepancy Details</div>', unsafe_allow_html=True)
 
-            param_sector = query_params.get("sector", None)
+            param_sector = st.session_state.get("nav_sector", None)
             if param_sector:
                 match_mask = site_records["SECTOR"] == param_sector
                 site_records = pd.concat([site_records[match_mask], site_records[~match_mask]])
@@ -531,12 +552,7 @@ elif current_page == "details":
                     st.markdown(f"**Capital at Risk:** ${int(row['ESTIMATED_CAPITAL_AT_RISK']):,}")
 
 
-# =============================================================================
-# PAGE: AI Assistant
-# =============================================================================
-
-elif current_page == "assistant":
-
+def assistant_page():
     st.markdown('<div class="section-header">AI Assistant</div>', unsafe_allow_html=True)
     st.markdown("Ask questions about equipment reconciliation data — discrepancies, capital at risk, site details, and more.")
 
@@ -636,3 +652,30 @@ elif current_page == "assistant":
         if st.button("Clear conversation", type="secondary"):
             st.session_state.messages = []
             st.rerun()
+
+
+# =============================================================================
+# Navigation Setup
+# =============================================================================
+
+summary_page_ref = st.Page(summary_page, title="Executive Summary", url_path="summary", default=True)
+details_page_ref = st.Page(details_page, title="Site Details", url_path="details")
+assistant_page_ref = st.Page(assistant_page, title="AI Assistant", url_path="assistant")
+
+pg = st.navigation(
+    [summary_page_ref, details_page_ref, assistant_page_ref],
+    position="hidden",
+)
+
+# Render nav links in header
+st.markdown('<div class="nav-container">', unsafe_allow_html=True)
+nav_cols = st.columns(3)
+with nav_cols[0]:
+    st.page_link(summary_page_ref, label="Executive Summary")
+with nav_cols[1]:
+    st.page_link(details_page_ref, label="Site Details")
+with nav_cols[2]:
+    st.page_link(assistant_page_ref, label="AI Assistant")
+st.markdown('</div>', unsafe_allow_html=True)
+
+pg.run()
