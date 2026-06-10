@@ -267,7 +267,12 @@ def load_site_harmonized(site_ids):
 # Page Routing
 # =============================================================================
 
-query_params = st.query_params
+if hasattr(st, "query_params"):
+    query_params = st.query_params
+else:
+    _raw = st.experimental_get_query_params()
+    query_params = {k: v[0] for k, v in _raw.items() if v}
+
 current_page = query_params.get("page", "summary")
 
 # =============================================================================
