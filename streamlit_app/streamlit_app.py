@@ -46,34 +46,33 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* Header/nav bar */
-    .nav-row {
+    /* Header/nav bar — targets the container with data-testid that holds our nav */
+    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child {
         background-color: #000000;
         margin: -1rem -1rem 1.5rem -1rem;
-        padding: 12px 24px;
+        padding: 12px 24px 12px 24px;
     }
-    .nav-row [data-testid="stHorizontalBlock"] {
-        gap: 0 !important;
+    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child [data-testid="stHorizontalBlock"] {
+        gap: 24px !important;
         align-items: center;
     }
-    .nav-row .brand-col p {
-        color: #FFFFFF;
+    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child [data-testid="stColumn"]:first-child {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: 200px;
+    }
+    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child [data-testid="stColumn"]:first-child p {
+        color: #FFFFFF !important;
         font-size: 18px;
         font-weight: 400;
         letter-spacing: -0.3px;
         margin: 0;
     }
-    .nav-row [data-testid="stColumn"]:first-child {
+    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child [data-testid="stColumn"]:not(:first-child) {
         flex: 0 0 auto !important;
         width: auto !important;
-        min-width: 220px;
     }
-    .nav-row [data-testid="stColumn"]:not(:first-child) {
-        flex: 0 0 auto !important;
-        width: auto !important;
-        padding-left: 12px;
-    }
-    .nav-row div[data-testid="stPageLink"] a {
+    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child div[data-testid="stPageLink"] a {
         color: #AAAAAA !important;
         text-decoration: none !important;
         font-size: 14px !important;
@@ -82,10 +81,10 @@ st.markdown("""
         border-bottom: 2px solid transparent !important;
         background: none !important;
     }
-    .nav-row div[data-testid="stPageLink"] a:hover {
+    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child div[data-testid="stPageLink"] a:hover {
         color: #FFFFFF !important;
     }
-    .nav-row div[data-testid="stPageLink"] a[aria-current="page"] {
+    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:first-child div[data-testid="stPageLink"] a[aria-current="page"] {
         color: #FFFFFF !important;
         border-bottom: 2px solid #E65100 !important;
     }
@@ -636,18 +635,14 @@ pg = st.navigation(
 
 # Render header bar with brand + clickable page links
 with st.container():
-    st.markdown('<div class="nav-row">', unsafe_allow_html=True)
     nav_cols = st.columns([2, 1.5, 1, 1])
     with nav_cols[0]:
-        st.markdown('<div class="brand-col">', unsafe_allow_html=True)
         st.markdown("APEX Reconciliation")
-        st.markdown('</div>', unsafe_allow_html=True)
     with nav_cols[1]:
         st.page_link(summary_page_ref, label="Executive Summary")
     with nav_cols[2]:
         st.page_link(details_page_ref, label="Site Details")
     with nav_cols[3]:
         st.page_link(assistant_page_ref, label="AI Assistant")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 pg.run()
