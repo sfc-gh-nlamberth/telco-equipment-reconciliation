@@ -413,6 +413,16 @@ def summary_page():
     filtered_df = filtered_df.reset_index(drop=True)
 
     # Render table with clickable View Details per row
+    header_cols = st.columns([1.2, 1, 2.5, 0.8, 1.2, 2.2, 1, 1.5])
+    header_cols[0].markdown("")
+    header_cols[1].markdown("**Site ID**")
+    header_cols[2].markdown("**Site Name**")
+    header_cols[3].markdown("**Sector**")
+    header_cols[4].markdown("**Region**")
+    header_cols[5].markdown("**Discrepancy**")
+    header_cols[6].markdown("**Severity**")
+    header_cols[7].markdown("**Capital at Risk**")
+
     for idx, r in filtered_df.iterrows():
         site_id = int(r["SITE_ID"])
         sector = r["SECTOR"]
