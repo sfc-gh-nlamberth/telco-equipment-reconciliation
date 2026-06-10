@@ -1,0 +1,8 @@
+[project]
+name = "equipment-reconciliation-app"
+version = "1.0.0"
+description = "Equipment Reconciliation Dashboard"
+requires-python = ">=3.11"
+dependencies = [
+    "altair>=5.5.0",
+]
