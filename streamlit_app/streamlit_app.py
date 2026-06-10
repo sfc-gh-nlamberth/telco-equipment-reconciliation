@@ -64,26 +64,34 @@ st.markdown("""
         color: #FFFFFF;
         font-weight: 400;
     }
-    .app-header .nav-links {
-        display: flex;
-        gap: 24px;
-        margin-left: 48px;
+    /* Nav bar: black background strip with white text buttons */
+    [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"] > [data-testid="element-container"] > [data-testid="stMarkdownContainer"] > .nav-bar-marker) {
+        background-color: #000000;
+        margin: -1.5rem -1rem 1.5rem -1rem;
+        padding: 8px 24px;
     }
-    .app-header .nav-links a {
-        color: #AAAAAA;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
-        padding: 4px 0;
-        border-bottom: 2px solid transparent;
-        transition: color 0.2s, border-color 0.2s;
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.nav-bar-marker) button {
+        background-color: transparent !important;
+        color: #AAAAAA !important;
+        border: none !important;
+        border-bottom: 3px solid transparent !important;
+        border-radius: 0 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        padding: 10px 20px !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
     }
-    .app-header .nav-links a:hover {
-        color: #FFFFFF;
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.nav-bar-marker) button:hover {
+        color: #FFFFFF !important;
+        background-color: #222222 !important;
+        border-bottom: 3px solid #555555 !important;
     }
-    .app-header .nav-links a.active {
-        color: #FFFFFF;
-        border-bottom: 2px solid #1976D2;
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.nav-bar-marker) button[kind="primary"],
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.nav-bar-marker) button[data-testid="stBaseButton-primary"] {
+        color: #FFFFFF !important;
+        border-bottom: 3px solid #1976D2 !important;
+        background-color: transparent !important;
     }
     .badge-high {
         background-color: #FDECEA;
@@ -271,29 +279,35 @@ def load_site_harmonized(site_ids):
 if "current_page" not in st.session_state:
     st.session_state.current_page = "summary"
 
-current_page = st.session_state.current_page
-
 # =============================================================================
 # Header
 # =============================================================================
 
-nav_cols = st.columns([3, 1, 1, 1])
+current_page = st.session_state.current_page
+
+st.markdown("""
+<div class="app-header">
+    <div class="brand">
+        <span class="app-name">Equipment Reconciliation</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+nav_container = st.container()
+nav_container.markdown('<div class="nav-bar-marker"></div>', unsafe_allow_html=True)
+nav_cols = nav_container.columns([1, 1, 1, 4])
 with nav_cols[0]:
-    st.markdown("**Equipment Reconciliation**")
-with nav_cols[1]:
-    if st.button("Executive Summary", use_container_width=True, type="primary" if current_page == "summary" else "secondary"):
+    if st.button("Executive Summary", use_container_width=True, type="primary" if current_page == "summary" else "secondary", key="nav_summary"):
         st.session_state.current_page = "summary"
         st.rerun()
-with nav_cols[2]:
-    if st.button("Site Details", use_container_width=True, type="primary" if current_page == "details" else "secondary"):
+with nav_cols[1]:
+    if st.button("Site Details", use_container_width=True, type="primary" if current_page == "details" else "secondary", key="nav_details"):
         st.session_state.current_page = "details"
         st.rerun()
-with nav_cols[3]:
-    if st.button("AI Assistant", use_container_width=True, type="primary" if current_page == "assistant" else "secondary"):
+with nav_cols[2]:
+    if st.button("AI Assistant", use_container_width=True, type="primary" if current_page == "assistant" else "secondary", key="nav_assistant"):
         st.session_state.current_page = "assistant"
         st.rerun()
-
-st.divider()
 
 # =============================================================================
 # Load Data
@@ -429,6 +443,20 @@ if current_page == "summary":
 
     st.markdown(build_html_table(filtered_df), unsafe_allow_html=True)
 
+    # Site navigation buttons — click to jump to Site Details
+    unique_sites = filtered_df[["SITE_ID", "SITE_NAME"]].drop_duplicates().sort_values("SITE_NAME")
+    if not unique_sites.empty:
+        st.markdown("**Jump to site details:**")
+        btn_cols = st.columns(min(len(unique_sites), 5))
+        for idx, (_, site_row) in enumerate(unique_sites.iterrows()):
+            col = btn_cols[idx % min(len(unique_sites), 5)]
+            site_id = int(site_row["SITE_ID"])
+            with col:
+                if st.button(f"{site_row['SITE_NAME']}", key=f"site_link_{site_id}"):
+                    st.session_state.current_page = "details"
+                    st.session_state.preselected_sites = [site_id]
+                    st.rerun()
+
 
 # =============================================================================
 # PAGE: Site Details
@@ -442,7 +470,7 @@ elif current_page == "details":
     site_options = site_df["SITE_ID"].tolist()
     site_labels = {row["SITE_ID"]: f"{int(row['SITE_ID'])} — {row['SITE_NAME']}" for _, row in site_df.iterrows()}
 
-    default_selection = []
+    default_selection = st.session_state.pop("preselected_sites", [])
 
     selected_sites = st.multiselect(
         "Select Sites", options=site_options, default=default_selection,
