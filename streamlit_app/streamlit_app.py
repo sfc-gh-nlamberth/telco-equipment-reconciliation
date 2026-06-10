@@ -125,6 +125,17 @@ st.markdown("""
         display: flex !important;
         align-items: center !important;
     }
+    [data-testid="stHorizontalBlock"]:has(.view-link) [data-testid="stColumn"] [data-testid="stVerticalBlock"] {
+        justify-content: center !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.view-link) [data-testid="stColumn"] p {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    /* Reduce gap between rows */
+    [data-testid="stVerticalBlock"]:has(.view-link) {
+        gap: 0.25rem !important;
+    }
     .badge-high {
         background-color: #FDECEA;
         color: #D32F2F;
