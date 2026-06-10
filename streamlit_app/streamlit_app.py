@@ -46,55 +46,33 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* Header bar with brand and nav inline */
-    .app-header {
+    /* Header/nav bar */
+    .nav-row {
         background-color: #000000;
-        padding: 12px 24px;
         margin: -1rem -1rem 1.5rem -1rem;
-        display: flex;
-        align-items: center;
-        gap: 16px;
+        padding: 12px 24px;
     }
-    .app-header .brand {
+    .nav-row [data-testid="stHorizontalBlock"] {
+        gap: 0 !important;
+        align-items: center;
+    }
+    .nav-row .brand-col p {
         color: #FFFFFF;
         font-size: 18px;
-        font-weight: 700;
-        letter-spacing: -0.3px;
-    }
-    .app-header .brand .app-name {
-        color: #FFFFFF;
         font-weight: 400;
+        letter-spacing: -0.3px;
+        margin: 0;
     }
-    .app-header .nav-links {
-        display: flex;
-        gap: 24px;
-        margin-left: 48px;
+    .nav-row [data-testid="stColumn"]:first-child {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: 220px;
     }
-    .app-header .nav-links span {
-        color: #AAAAAA;
-        font-size: 14px;
-        font-weight: 500;
-        padding: 4px 0;
-        border-bottom: 2px solid transparent;
-        cursor: default;
+    .nav-row [data-testid="stColumn"]:not(:first-child) {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        padding-left: 12px;
     }
-    .app-header .nav-links span.active {
-        color: #FFFFFF;
-        border-bottom: 2px solid #E65100;
-    }
-    /* Hide the st.page_link nav row visually — we use it for functionality but overlay with HTML header */
-    .nav-row-hidden {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0,0,0,0);
-        white-space: nowrap;
-        border: 0;
-        padding: 0;
-        margin: -1px;
-    }
-    /* Page link styling for the visible nav row */
     .nav-row div[data-testid="stPageLink"] a {
         color: #AAAAAA !important;
         text-decoration: none !important;
@@ -111,21 +89,8 @@ st.markdown("""
         color: #FFFFFF !important;
         border-bottom: 2px solid #E65100 !important;
     }
-    .nav-row {
-        background-color: #000000;
-        margin: -1.5rem -1rem 1.5rem -1rem;
-        padding: 0 24px 12px 24px;
-    }
-    .nav-row [data-testid="stHorizontalBlock"] {
-        gap: 24px !important;
-        padding-left: 220px;
-    }
-    .nav-row [data-testid="stColumn"] {
-        flex: 0 0 auto !important;
-        width: auto !important;
-    }
-    /* View Details link button */
-    .view-link button {
+    /* View Details button styled as link */
+    .view-link [data-testid="stBaseButton-tertiary"] {
         color: #1976D2 !important;
         font-weight: 500 !important;
         font-size: 13px !important;
@@ -136,7 +101,7 @@ st.markdown("""
         border: none !important;
         background: none !important;
     }
-    .view-link button:hover {
+    .view-link [data-testid="stBaseButton-tertiary"]:hover {
         text-decoration: underline !important;
         color: #1565C0 !important;
     }
@@ -192,41 +157,6 @@ st.markdown("""
     /* Hide default sidebar nav */
     [data-testid="stSidebar"] {
         display: none !important;
-    }
-    /* Discrepancy table styling */
-    .disc-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-    }
-    .disc-table thead tr {
-        background: #F5F5F5;
-        position: sticky;
-        top: 0;
-    }
-    .disc-table th {
-        padding: 8px 12px;
-        text-align: left;
-        border-bottom: 2px solid #E0E0E0;
-        font-weight: 600;
-    }
-    .disc-table td {
-        padding: 6px 12px;
-        border-bottom: 1px solid #EEE;
-    }
-    .disc-table .view-details {
-        color: #1976D2;
-        font-weight: 500;
-        cursor: pointer;
-        text-decoration: none;
-    }
-    .disc-table .sev-high {
-        color: #D32F2F;
-        font-weight: 600;
-    }
-    .disc-table .sev-medium {
-        color: #E65100;
-        font-weight: 600;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -467,55 +397,28 @@ def summary_page():
     st.markdown(f"Showing **{len(filtered_df):,}** of {len(insights_df):,} records ({len(filtered_df['SITE_ID'].unique()):,} sites)")
     filtered_df = filtered_df.reset_index(drop=True)
 
-    # Build HTML table with View Details text (non-functional in HTML)
-    severity_colors = {"HIGH": "sev-high", "MEDIUM": "sev-medium"}
-    rows_html = ""
+    # Render table with clickable View Details per row
     for idx, r in filtered_df.iterrows():
-        sev_class = severity_colors.get(r["SEVERITY"], "")
         site_id = int(r["SITE_ID"])
-        rows_html += f"""<tr>
-            <td><span class="view-details" data-idx="{idx}">View Details</span></td>
-            <td>{site_id}</td>
-            <td>{r['SITE_NAME']}</td>
-            <td>{r['SECTOR']}</td>
-            <td>{r['BOM_REGION'] or '—'}</td>
-            <td>{r['DISCREPANCY_TYPE']}</td>
-            <td class="{sev_class}">{r['SEVERITY']}</td>
-            <td>${int(r['ESTIMATED_CAPITAL_AT_RISK']):,}</td>
-        </tr>"""
-
-    st.markdown(f"""<div style="max-height:400px;overflow-y:auto;border:1px solid #E0E0E0;border-radius:4px;">
-    <table class="disc-table">
-        <thead><tr>
-            <th></th>
-            <th>Site ID</th>
-            <th>Site Name</th>
-            <th>Sector</th>
-            <th>Region</th>
-            <th>Discrepancy</th>
-            <th>Severity</th>
-            <th>Capital at Risk</th>
-        </tr></thead>
-        <tbody>{rows_html}</tbody>
-    </table></div>""", unsafe_allow_html=True)
-
-    # Functional navigation: selectbox to jump to a site's details
-    site_list = filtered_df[["SITE_ID", "SITE_NAME", "SECTOR"]].drop_duplicates().reset_index(drop=True)
-    jump_options = [f"{int(r['SITE_ID'])} — {r['SITE_NAME']} ({r['SECTOR']})" for _, r in site_list.iterrows()]
-
-    selected = st.selectbox(
-        "Jump to site details",
-        jump_options,
-        index=None,
-        placeholder="Select a discrepancy to view details...",
-    )
-    if selected:
-        parts = selected.split(" — ")
-        site_id = int(parts[0])
-        sector = parts[1].split("(")[-1].rstrip(")")
-        st.session_state.nav_site = site_id
-        st.session_state.nav_sector = sector
-        st.switch_page(details_page_ref)
+        sector = r["SECTOR"]
+        sev = r["SEVERITY"]
+        sev_color = "#D32F2F" if sev == "HIGH" else "#E65100"
+        row_cols = st.columns([1.2, 1, 2.5, 0.8, 1.2, 2.2, 1, 1.5])
+        with row_cols[0]:
+            with st.container():
+                st.markdown('<div class="view-link">', unsafe_allow_html=True)
+                if st.button("View Details", key=f"view_{idx}", type="tertiary"):
+                    st.session_state.nav_site = site_id
+                    st.session_state.nav_sector = sector
+                    st.switch_page(details_page_ref)
+                st.markdown('</div>', unsafe_allow_html=True)
+        row_cols[1].markdown(f"{site_id}")
+        row_cols[2].markdown(f"{r['SITE_NAME']}")
+        row_cols[3].markdown(f"{r['SECTOR']}")
+        row_cols[4].markdown(f"{r['BOM_REGION'] or '—'}")
+        row_cols[5].markdown(f"{r['DISCREPANCY_TYPE']}")
+        row_cols[6].markdown(f"<span style='color:{sev_color};font-weight:600;'>{sev}</span>", unsafe_allow_html=True)
+        row_cols[7].markdown(f"${int(r['ESTIMATED_CAPITAL_AT_RISK']):,}")
 
 
 def details_page():
@@ -731,32 +634,19 @@ pg = st.navigation(
     position="hidden",
 )
 
-# Render header with brand + nav
-current_page_title = pg.title if hasattr(pg, 'title') else "Executive Summary"
-
-st.markdown(f"""
-<div class="app-header">
-    <div class="brand">
-        <span style="font-weight:700;">verizon</span> <span style="color:#666;margin:0 8px;">|</span>
-        <span class="app-name">APEX Reconciliation</span>
-    </div>
-    <div class="nav-links">
-        <span class="{'active' if current_page_title == 'Executive Summary' else ''}">Executive Summary</span>
-        <span class="{'active' if current_page_title == 'Site Details' else ''}">Site Details</span>
-        <span class="{'active' if current_page_title == 'AI Assistant' else ''}">AI Assistant</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# Functional page links (styled to match header visually)
+# Render header bar with brand + clickable page links
 with st.container():
     st.markdown('<div class="nav-row">', unsafe_allow_html=True)
-    nav_cols = st.columns(3)
+    nav_cols = st.columns([2, 1.5, 1, 1])
     with nav_cols[0]:
-        st.page_link(summary_page_ref, label="Executive Summary")
+        st.markdown('<div class="brand-col">', unsafe_allow_html=True)
+        st.markdown("APEX Reconciliation")
+        st.markdown('</div>', unsafe_allow_html=True)
     with nav_cols[1]:
-        st.page_link(details_page_ref, label="Site Details")
+        st.page_link(summary_page_ref, label="Executive Summary")
     with nav_cols[2]:
+        st.page_link(details_page_ref, label="Site Details")
+    with nav_cols[3]:
         st.page_link(assistant_page_ref, label="AI Assistant")
     st.markdown('</div>', unsafe_allow_html=True)
 
