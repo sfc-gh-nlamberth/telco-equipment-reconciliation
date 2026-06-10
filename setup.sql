@@ -689,7 +689,7 @@ BEGIN
     -- Initialize the app
     ALTER STREAMLIT RECONCILED.EQUIPMENT_RECONCILIATION_APP ADD LIVE VERSION FROM LAST;
 
-    RETURN 'Streamlit app deployed successfully. Open it from Data Products > Streamlit in Snowsight.';
+    RETURN 'Streamlit app deployed successfully. Open it from Projects > Streamlit in Snowsight. Ensure you set yoru role to EQUIPMENT_RECON_ROLE.';
 END;
 $$;
 
