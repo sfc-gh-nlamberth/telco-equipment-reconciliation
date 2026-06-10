@@ -364,15 +364,15 @@ if current_page == "summary":
         alt.Chart(region_data)
         .mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4)
         .encode(
-            x=alt.X("REGION:N", title=None),
+            x=alt.X("DISCREPANCY_TYPE:N", title=None, axis=alt.Axis(labelAngle=-45)),
             y=alt.Y("COUNT:Q", title="Count"),
             color=alt.Color("DISCREPANCY_TYPE:N", scale=alt.Scale(domain=["SERIAL_MISMATCH", "PRODUCT_MISMATCH", "NO_ENM_MATCH"], range=["#D32F2F", "#F57C00", "#757575"]), title="Type"),
-            xOffset="DISCREPANCY_TYPE:N",
+            column=alt.Column("REGION:N", title=None),
             tooltip=[alt.Tooltip("REGION:N", title="Region"), alt.Tooltip("DISCREPANCY_TYPE:N", title="Type"), alt.Tooltip("COUNT:Q", title="Count"), alt.Tooltip("CAPITAL_AT_RISK:Q", title="Capital at Risk", format="$,.0f")],
         )
-        .properties(height=250)
+        .properties(height=250, width=150)
     )
-    st.altair_chart(region_chart, use_container_width=True)
+    st.altair_chart(region_chart, use_container_width=False)
 
     # Detail table
     st.markdown('<div class="section-header">Site-Level Discrepancies</div>', unsafe_allow_html=True)
