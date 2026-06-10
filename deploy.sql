@@ -11,28 +11,29 @@ USE DATABASE EQUIPMENT_RECON_DEMO;
 -- =============================================================================
 -- Generate Data
 -- =============================================================================
-
+USE SCHEMA RAW;
 -- Generate synthetic ENM physical inventory (~5,700 rows)
-CALL RAW.GENERATE_ENM_DATA();
+CALL GENERATE_ENM_DATA();
 
 -- Generate BOM records with ~8% discrepancies (~5,700 rows)
-CALL RAW.GENERATE_BOM_DATA();
+CALL GENERATE_BOM_DATA();
 
+USE SCHEMA RECONCILED;
 -- Materialize discrepancies (~400-500 records)
-CALL RECONCILED.RUN_RECONCILIATION();
+CALL RUN_RECONCILIATION();
 
 -- =============================================================================
 -- Deploy Streamlit App
 -- =============================================================================
 
 -- Deploy the Streamlit app from GitHub
-CALL RECONCILED.DEPLOY_STREAMLIT();
+CALL DEPLOY_STREAMLIT();
 
 -- =============================================================================
 -- Verify
 -- =============================================================================
 
-SELECT 'ENM' AS SOURCE, COUNT(*) AS ROWS FROM RAW.ENM_SERIAL_NUMBERS
+SELECT 'ENM' AS SOURCE, COUNT(*) AS ROW_COUNT FROM RAW.ENM_SERIAL_NUMBERS
 UNION ALL
 SELECT 'BOM', COUNT(*) FROM RAW.BOM_INVENTORY
 UNION ALL
