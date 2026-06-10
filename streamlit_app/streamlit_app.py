@@ -18,9 +18,11 @@ import streamlit as st
 # =============================================================================
 
 try:
-    session = st.connection("snowflake").session()
+    conn = st.connection("snowflake")
+    session = conn.session()
     IS_SIS = True
-except Exception:
+except Exception as _e:
+    # Running locally — fall back to manual connection
     IS_SIS = False
     import os
     from pathlib import Path
