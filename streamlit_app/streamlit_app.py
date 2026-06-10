@@ -120,6 +120,11 @@ st.markdown("""
         text-decoration: underline !important;
         color: #1565C0 !important;
     }
+    /* Vertically align column content in table rows */
+    [data-testid="stHorizontalBlock"]:has(.view-link) [data-testid="stColumn"] {
+        display: flex !important;
+        align-items: center !important;
+    }
     .badge-high {
         background-color: #FDECEA;
         color: #D32F2F;
@@ -413,7 +418,8 @@ def summary_page():
     filtered_df = filtered_df.reset_index(drop=True)
 
     # Render table with clickable View Details per row
-    header_cols = st.columns([1.2, 1, 2.5, 0.8, 1.2, 2.2, 1, 1.5])
+    col_widths = [1.2, 1, 3.5, 0.8, 1.2, 2.2, 1, 1.5]
+    header_cols = st.columns(col_widths)
     header_cols[0].markdown("")
     header_cols[1].markdown("**Site ID**")
     header_cols[2].markdown("**Site Name**")
@@ -428,7 +434,7 @@ def summary_page():
         sector = r["SECTOR"]
         sev = r["SEVERITY"]
         sev_color = "#D32F2F" if sev == "HIGH" else "#E65100"
-        row_cols = st.columns([1.2, 1, 2.5, 0.8, 1.2, 2.2, 1, 1.5])
+        row_cols = st.columns(col_widths)
         with row_cols[0]:
             with st.container():
                 st.markdown('<div class="view-link">', unsafe_allow_html=True)
