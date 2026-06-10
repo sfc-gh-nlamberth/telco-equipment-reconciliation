@@ -120,21 +120,9 @@ st.markdown("""
         text-decoration: underline !important;
         color: #1565C0 !important;
     }
-    /* Vertically align column content in table rows */
-    [data-testid="stHorizontalBlock"]:has(.view-link) [data-testid="stColumn"] {
-        display: flex !important;
-        align-items: center !important;
-    }
-    [data-testid="stHorizontalBlock"]:has(.view-link) [data-testid="stColumn"] [data-testid="stVerticalBlock"] {
-        justify-content: center !important;
-    }
-    [data-testid="stHorizontalBlock"]:has(.view-link) [data-testid="stColumn"] p {
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    /* Reduce gap between rows */
-    [data-testid="stVerticalBlock"]:has(.view-link) {
-        gap: 0.25rem !important;
+    /* Add top padding to text cells to align with View Details button */
+    [data-testid="stHorizontalBlock"]:has(.view-link) [data-testid="stColumn"]:not(:first-child) p {
+        padding-top: 0.6rem !important;
     }
     .badge-high {
         background-color: #FDECEA;
