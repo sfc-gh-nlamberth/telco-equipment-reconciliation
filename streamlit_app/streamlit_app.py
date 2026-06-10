@@ -122,7 +122,7 @@ st.markdown("""
     }
     /* Add top padding to text cells to align with View Details button */
     [data-testid="stHorizontalBlock"]:has(.view-link) [data-testid="stColumn"]:not(:first-child) p {
-        padding-top: 0.6rem !important;
+        padding-top: 1rem !important;
     }
     .badge-high {
         background-color: #FDECEA;
