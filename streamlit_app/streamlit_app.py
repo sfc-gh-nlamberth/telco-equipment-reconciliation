@@ -268,29 +268,32 @@ def load_site_harmonized(site_ids):
 # Page Routing
 # =============================================================================
 
-query_params = st.query_params
-current_page = query_params.get("page", "summary")
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "summary"
+
+current_page = st.session_state.current_page
 
 # =============================================================================
 # Header
 # =============================================================================
 
-summary_active = "active" if current_page == "summary" else ""
-details_active = "active" if current_page == "details" else ""
-assistant_active = "active" if current_page == "assistant" else ""
+nav_cols = st.columns([3, 1, 1, 1])
+with nav_cols[0]:
+    st.markdown("**Equipment Reconciliation**")
+with nav_cols[1]:
+    if st.button("Executive Summary", use_container_width=True, type="primary" if current_page == "summary" else "secondary"):
+        st.session_state.current_page = "summary"
+        st.rerun()
+with nav_cols[2]:
+    if st.button("Site Details", use_container_width=True, type="primary" if current_page == "details" else "secondary"):
+        st.session_state.current_page = "details"
+        st.rerun()
+with nav_cols[3]:
+    if st.button("AI Assistant", use_container_width=True, type="primary" if current_page == "assistant" else "secondary"):
+        st.session_state.current_page = "assistant"
+        st.rerun()
 
-st.markdown(f"""
-<div class="app-header">
-    <div class="brand">
-        <span class="app-name">Equipment Reconciliation</span>
-    </div>
-    <div class="nav-links">
-        <a href="?page=summary" target="_self" class="{summary_active}">Executive Summary</a>
-        <a href="?page=details" target="_self" class="{details_active}">Site Details</a>
-        <a href="?page=assistant" target="_self" class="{assistant_active}">AI Assistant</a>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+st.divider()
 
 # =============================================================================
 # Load Data
@@ -402,7 +405,6 @@ if current_page == "summary":
             sev_color = severity_colors.get(r["SEVERITY"], "#333")
             site_id = int(r["SITE_ID"])
             rows_html += f"""<tr>
-                <td style="padding:6px 12px;border-bottom:1px solid #EEE;"><a href="?page=details&site={site_id}&sector={r['SECTOR']}" target="_self" style="color:#1976D2;font-weight:600;text-decoration:none;">View</a></td>
                 <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{site_id}</td>
                 <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{r['SITE_NAME']}</td>
                 <td style="padding:6px 12px;border-bottom:1px solid #EEE;">{r['SECTOR']}</td>
@@ -414,7 +416,6 @@ if current_page == "summary":
         return f"""<div style="max-height:400px;overflow-y:auto;border:1px solid #E0E0E0;border-radius:4px;">
         <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr style="background:#F5F5F5;position:sticky;top:0;">
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;"></th>
                 <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Site ID</th>
                 <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Site Name</th>
                 <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #E0E0E0;">Sector</th>
@@ -441,15 +442,7 @@ elif current_page == "details":
     site_options = site_df["SITE_ID"].tolist()
     site_labels = {row["SITE_ID"]: f"{int(row['SITE_ID'])} — {row['SITE_NAME']}" for _, row in site_df.iterrows()}
 
-    param_site = query_params.get("site", None)
     default_selection = []
-    if param_site:
-        try:
-            param_site_id = int(param_site)
-            if param_site_id in site_options:
-                default_selection = [param_site_id]
-        except (ValueError, IndexError):
-            pass
 
     selected_sites = st.multiselect(
         "Select Sites", options=site_options, default=default_selection,
@@ -504,11 +497,6 @@ elif current_page == "details":
         # Discrepancy details
         if discrepancy_count > 0:
             st.markdown('<div class="section-header" style="font-size:16px;margin-top:32px;">Discrepancy Details</div>', unsafe_allow_html=True)
-
-            param_sector = query_params.get("sector", None)
-            if param_sector:
-                match_mask = site_records["SECTOR"] == param_sector
-                site_records = pd.concat([site_records[match_mask], site_records[~match_mask]])
 
             for _, row in site_records.iterrows():
                 with st.expander(f"{row['SITE_NAME']} / {row['SECTOR']} — {row['DISCREPANCY_TYPE']} ({row['SEVERITY']})", expanded=True):
