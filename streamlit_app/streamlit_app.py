@@ -75,22 +75,34 @@ st.markdown("""
         flex: 0 0 auto !important;
         width: auto !important;
     }
-    /* Style page link elements for nav */
-    div[data-testid="stPageLink"] a {
+    /* Style page link elements for nav — target all possible text elements */
+    div[data-testid="stPageLink"] a,
+    div[data-testid="stPageLink"] a span,
+    div[data-testid="stPageLink"] a p,
+    div[data-testid="stPageLink"] p,
+    [data-testid="stPageLink"] a,
+    [data-testid="stPageLink"] a *,
+    [data-testid="stPageLink"] span {
         color: #AAAAAA !important;
         text-decoration: none !important;
         font-size: 14px !important;
         font-weight: 500 !important;
-        padding: 4px 0 !important;
         border-bottom: 2px solid transparent !important;
         background: none !important;
+        background-color: transparent !important;
     }
-    div[data-testid="stPageLink"] a:hover {
+    div[data-testid="stPageLink"] a:hover,
+    div[data-testid="stPageLink"] a:hover *,
+    [data-testid="stPageLink"] a:hover,
+    [data-testid="stPageLink"] a:hover * {
         color: #FFFFFF !important;
     }
-    div[data-testid="stPageLink"] a[aria-current="page"] {
+    div[data-testid="stPageLink"] a[aria-current="page"],
+    div[data-testid="stPageLink"] a[aria-current="page"] *,
+    [data-testid="stPageLink"] a[aria-current="page"],
+    [data-testid="stPageLink"] a[aria-current="page"] * {
         color: #FFFFFF !important;
-        border-bottom: 2px solid #E65100 !important;
+        border-bottom-color: #E65100 !important;
     }
     /* View Details button styled as link */
     .view-link [data-testid="stBaseButton-tertiary"] {
